@@ -6,14 +6,17 @@ import {
   StyleSheet,
   FlatList,
   ActivityIndicator,
+  TouchableOpacity,
 } from "react-native";
 import { db } from "../../constants/FirebaseConfig";
 import { query, collection, getDocs } from "firebase/firestore";
 import { Colors } from "../../constants/Colors";
+import { useRouter } from "expo-router";
 
 export default function UpcomingEvents({ refreshTrigger }) {
   const [upcomingList, setUpcomingList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const route = useRouter();
 
   const GetUpcomingEvents = async () => {
     setIsLoading(true);
@@ -38,17 +41,19 @@ export default function UpcomingEvents({ refreshTrigger }) {
   }, [refreshTrigger]);
 
   const renderItem = ({ item }) => (
-    <ImageBackground
-      source={{ uri: item.imageUrl }}
-      style={styles.eventCard}
-      imageStyle={{ borderRadius: 10 }}
-    >
-      <View style={styles.textOverlay}>
-        <Text style={styles.eventTitle}>{item.title}</Text>
-        <Text style={styles.eventDetails}>{item.date}</Text>
-        <Text style={styles.eventDetails}>{item.time}</Text>
-      </View>
-    </ImageBackground>
+    <TouchableOpacity onPress={() => route.push("/eventDetail/" + item.title)}>
+      <ImageBackground
+        source={{ uri: item.imageUrl }}
+        style={styles.eventCard}
+        imageStyle={{ borderRadius: 10 }}
+      >
+        <View style={styles.textOverlay}>
+          <Text style={styles.eventTitle}>{item.title}</Text>
+          <Text style={styles.eventDetails}>{item.date}</Text>
+          <Text style={styles.eventDetails}>{item.time}</Text>
+        </View>
+      </ImageBackground>
+    </TouchableOpacity>
   );
 
   return (
