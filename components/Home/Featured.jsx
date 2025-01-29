@@ -11,14 +11,12 @@ import { query, collection, getDocs } from "firebase/firestore";
 import { Colors } from "../../constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
 
-export default function Featured() {
+export default function Featured({ refreshTrigger }) {
   const [featuredList, setFeaturedList] = useState([]);
-
-  useEffect(() => {
-    GetFeaturedList();
-  }, []);
+  const [isLoading, setIsLoading] = useState(true);
 
   const GetFeaturedList = async () => {
+    setIsLoading(true); // Start loading
     const q = query(collection(db, "Featured"));
     const querySnapShot = await getDocs(q);
 
@@ -26,21 +24,31 @@ export default function Featured() {
       const data = querySnapShot.docs.map((doc) => doc.data());
       setFeaturedList(data);
     }
+    setIsLoading(false); // Stop loading
   };
+
+  useEffect(() => {
+    GetFeaturedList();
+  }, []);
+
+  useEffect(() => {
+    if (refreshTrigger) {
+      GetFeaturedList();
+    }
+  }, [refreshTrigger]);
 
   return (
     <View style={{ marginHorizontal: 10 }}>
-      {/* Render Featured Title Immediately */}
       <Text style={styles.sectionTitle}>Featured</Text>
 
-      {/* Show Content or Loader */}
-      {featuredList.length === 0 ? (
+      {isLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.PRIMARY} />
         </View>
+      ) : featuredList.length === 0 ? (
+        <Text style={styles.emptyText}>No featured content available</Text>
       ) : (
         <View style={styles.featuredContainer}>
-          {/* Large Left Image */}
           <ImageBackground
             source={{ uri: featuredList[0].imageUrl }}
             style={styles.largeImage}
@@ -57,7 +65,6 @@ export default function Featured() {
             </View>
           </ImageBackground>
 
-          {/* Stacked Right Images */}
           <View style={styles.rightStack}>
             {featuredList.slice(1).map((item, index) => (
               <ImageBackground
@@ -128,8 +135,14 @@ const styles = StyleSheet.create({
     color: "#fff",
   },
   loadingContainer: {
-    flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    height: 200, // Enough space for loader
+  },
+  emptyText: {
+    textAlign: "center",
+    fontSize: 16,
+    fontFamily: "poppins-regular",
+    color: "gray",
   },
 });

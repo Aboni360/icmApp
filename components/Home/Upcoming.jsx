@@ -11,15 +11,12 @@ import { db } from "../../constants/FirebaseConfig";
 import { query, collection, getDocs } from "firebase/firestore";
 import { Colors } from "../../constants/Colors";
 
-export default function UpcomingEvents() {
+export default function UpcomingEvents({ refreshTrigger }) {
   const [upcomingList, setUpcomingList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    GetUpcomingEvents();
-  }, []);
-
   const GetUpcomingEvents = async () => {
+    setIsLoading(true);
     const q = query(collection(db, "Upcoming"));
     const querySnapShot = await getDocs(q);
 
@@ -27,10 +24,19 @@ export default function UpcomingEvents() {
       const data = querySnapShot.docs.map((doc) => doc.data());
       setUpcomingList(data);
     }
-    setIsLoading(false); // Data loading is complete
+    setIsLoading(false);
   };
 
-  // Render each item in the FlatList
+  useEffect(() => {
+    GetUpcomingEvents();
+  }, []);
+
+  useEffect(() => {
+    if (refreshTrigger) {
+      GetUpcomingEvents();
+    }
+  }, [refreshTrigger]);
+
   const renderItem = ({ item }) => (
     <ImageBackground
       source={{ uri: item.imageUrl }}
@@ -47,12 +53,15 @@ export default function UpcomingEvents() {
 
   return (
     <View style={styles.container}>
-      {/* Render Section Title */}
       <Text style={styles.sectionTitle}>Upcoming Events</Text>
 
       {isLoading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Colors.PRIMARY} />
+          <ActivityIndicator
+            size="large"
+            color={Colors.GRAY}
+            style={{ marginTop: "20%" }}
+          />
         </View>
       ) : (
         <FlatList
